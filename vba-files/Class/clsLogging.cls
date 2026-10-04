@@ -264,14 +264,14 @@ Private Function EscapeCSV(ByVal txt As String) As String
 End Function
 
 ' Append text to file
-Private Function AppendToFile(ByVal text As String, Optional ByVal FilePath As String) As Boolean
+Private Function AppendToFile(ByVal text As String, Optional ByVal filePath As String) As Boolean
     Dim ts As Object
     Dim targetPath As String
     Dim bIsNewFile As Boolean
 
     On Error GoTo ErrorHandler
 
-    targetPath = IIf(Len(FilePath) = 0, m_LogFilePath, FilePath)
+    targetPath = IIf(Len(filePath) = 0, m_LogFilePath, filePath)
     bIsNewFile = Not m_FSO.FileExists(targetPath)
 
     Set ts = m_FSO.OpenTextFile(targetPath, FSO_FOR_APPENDING, True, FSO_TRISTATE_TRUE)

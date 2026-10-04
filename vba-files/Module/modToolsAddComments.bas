@@ -152,7 +152,7 @@ Private Sub sysAddHeader(ByRef CurentCodePane As CodePane)
 
         'create text block for insertion
         sTemp = "'" & sTemp & vbCrLf & _
-                "'" & sType & vbTab & sProc & "- add description!" & vbCrLf & _
+                "'" & sType & vbTab & sProc & " - add description!" & vbCrLf & _
                 sComments & vbCrLf & _
                 sProcArguments & _
                 "'" & sTemp

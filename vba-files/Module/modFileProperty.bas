@@ -3,11 +3,13 @@ Option Explicit
 Option Private Module
 
 Public Function GetOneProp(ByRef wb As Workbook, ByVal NameProp As String) As String
-      GetOneProp = wb.BuiltinDocumentProperties(NameProp).value
+    On Error Resume Next
+    GetOneProp = wb.BuiltinDocumentProperties(NameProp).value
+    On Error GoTo 0
 End Function
 
 Public Function getFilePropertiesCustomList(ByRef wb As Workbook) As Variant
-      Dim i           As Long
+    Dim i           As Long
     Dim iCount      As Long
 
     With wb

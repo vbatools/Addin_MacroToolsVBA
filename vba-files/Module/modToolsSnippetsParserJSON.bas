@@ -8,7 +8,7 @@ Public Sub ReadSnippetsJsonFromLockalJSON()
     If (Not (Not (sPath))) = 0 Then Exit Sub
 
     Dim sJSON       As String
-    sJSON = loadTextFromTextFile(sPath(1, 1), "utf-8")
+    sJSON = loadTextFromTextFile(sPath(1, 1), "windows-1251")
     Call parserJSONtoTableSnippets(sJSON)
 End Sub
 
@@ -100,7 +100,7 @@ Public Sub parserJSONtoTableSnippets(ByVal sJSON As String)
                     arrtable(i, COL_CODE_SNIPPET) = JsonItem(vItem)
 
                 Case "CODE"
-                    arrtable(i, COL_CODE) = JsonItem(vItem)
+                    arrtable(i, COL_CODE) = CollapseRepeats(JsonItem(vItem), VBA.Chr(13))
 
                 Case "DISCRIPTION", "DESCRIPTION"
                     arrtable(i, COL_DESCRIPTION) = JsonItem(vItem)
@@ -196,7 +196,9 @@ Private Sub DeleteShapes()
 End Sub
 
 Private Sub AddShape(ByVal sNameShape, ByVal sValue As String)
-    If haveShape(sNameShape) Then Exit Sub
+    If haveShape(sNameShape) Then
+        shSettings.Shapes(sNameShape).Delete
+    End If
     Dim shp         As Shape
     Set shp = shSettings.Shapes.AddShape(msoShapeRectangle, 20, 20, 20, 20)
     With shp

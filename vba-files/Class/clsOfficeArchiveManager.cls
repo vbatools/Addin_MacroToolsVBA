@@ -31,7 +31,7 @@ Public Enum SettingsValue
     FilePrinterSettings
     FileCustomUI
     FileCustomUI14
-    
+
     FolderPrinterSettings
     FolderUnzipped    ' Folder with unpacked files
     FolderZip    ' Temporary archive file
@@ -80,7 +80,7 @@ Public Function GetSettings(ByVal enValue As SettingsValue) As String
     sBasePath = mUnzippedFolderPath & Application.PathSeparator
 
     Select Case enValue
-             Case SettingsValue.FolderUnzipped: GetSettings = sBasePath
+        Case SettingsValue.FolderUnzipped: GetSettings = sBasePath
         Case SettingsValue.FolderZip: GetSettings = mUnzippedFolderPath & EXT_ZIP    ' Temporary zip file
         Case SettingsValue.FolderCustomUI: GetSettings = sBasePath & "customUI" & Application.PathSeparator
         Case SettingsValue.FolderDocProps: GetSettings = sBasePath & "docProps" & Application.PathSeparator
@@ -101,7 +101,7 @@ Public Function GetSettings(ByVal enValue As SettingsValue) As String
             If mFileType = "xl" Then GetSettings = sBasePath & mFileType & Application.PathSeparator & "vbaProject.bin"
             'for excel
         Case SettingsValue.ExlFolderEmbeddings
-             If mFileType = "xl" Then GetSettings = sBasePath & mFileType & Application.PathSeparator & "embeddings"
+            If mFileType = "xl" Then GetSettings = sBasePath & mFileType & Application.PathSeparator & "embeddings"
         Case SettingsValue.FolderPrinterSettings
             If mFileType = "xl" Then GetSettings = sBasePath & mFileType & Application.PathSeparator & "printerSettings"
         Case SettingsValue.FilePrinterSettings
@@ -114,10 +114,6 @@ Public Function GetSettings(ByVal enValue As SettingsValue) As String
         Case SettingsValue.ExlFileWorkBook:
             If mFileType = "xl" Then GetSettings = sBasePath & mFileType & Application.PathSeparator & "workbook.xml"
     End Select
-End Function
-
-Public Function addPathToSheet(ByVal idSheet As Long) As String
-    addPathToSheet = GetSettings(ExlFolderWorkSheets) & "sheet" & idSheet & ".xml"
 End Function
 
 ' Initialize class
@@ -141,8 +137,8 @@ Public Function Initialize(ByVal sPathFile As String, ByVal addBackup As Boolean
         mFileFolder = .GetParentFolderName(sPathFile)
         mFileExtension = .GetExtensionName(sPathFile)
         mFileName = .getFileName(sPathFile)
-        If mFileName Like "*вЂ”*" Then
-            mFileName = VBA.Replace(mFileName, "вЂ”", "-")
+        If mFileName Like "*—*" Then
+            mFileName = VBA.Replace(mFileName, "—", "-")
             Name mFileFullName As mFileFolder & Application.PathSeparator & mFileName
             mFileFullName = mFileFolder & Application.PathSeparator & mFileName
         End If
@@ -152,7 +148,7 @@ Public Function Initialize(ByVal sPathFile As String, ByVal addBackup As Boolean
 
     ' Determine office file type
     Select Case VBA.LCase(mFileExtension)
-             Case "docm", "dotm", "dotx", "docx", "doc", "dot": mFileType = "word": mFileRelsPath = "_rels" & Application.PathSeparator & "document.xml.rels"
+        Case "docm", "dotm", "dotx", "docx", "doc", "dot": mFileType = "word": mFileRelsPath = "_rels" & Application.PathSeparator & "document.xml.rels"
         Case "xlsm", "xlsb", "xlam", "xla", "xlsx", "xls": mFileType = "xl": mFileRelsPath = "_rels" & Application.PathSeparator & "workbook.xml.rels"
         Case "pptx", "pptm", "ppt", "potx", "potm", "pot": mFileType = "ppt": mFileRelsPath = "_rels" & Application.PathSeparator & "presentation.xml.rels"
     End Select
@@ -178,7 +174,7 @@ Public Function UnZipFile() As Boolean
 
     Dim sTempZipFile As String
     sTempZipFile = mUnzippedFolderPath & EXT_ZIP
-    
+
     UnZipFile = FileUnZip(mFSO, mUnzippedFolderPath, mFileFullName)
 
 
@@ -204,9 +200,9 @@ Public Function ZipFilesInFolder() As Boolean
 
     Dim sDestZip    As String
     sDestZip = mFileFullName & EXT_ZIP
-    
+
     ZipFilesInFolder = ZipAllFilesInFolder(mFSO, mUnzippedFolderPath, mFileFullName)
-    
+
 
     Exit Function
 ErrHandler:
@@ -225,7 +221,7 @@ Private Function IsFileLocked(ByVal sFileFullName As String) As Boolean
     Name sFileFullName As sTempName
 
     Select Case Err.Number
-             Case 58, 75: IsFileLocked = True
+        Case 58, 75: IsFileLocked = True
         Case 0: Name sTempName As sFileFullName
         Case Else: Debug.Print ">> Unexpected lock error: " & Err.Number
     End Select
@@ -270,17 +266,22 @@ End Sub
 
 Public Function getArraySheetsName() As Variant
     Dim sPathXML    As String
+    Dim sPathXMLRel    As String
     Dim oXMLDoc     As MSXML2.DOMDocument
+    Dim oXMLDocRel     As MSXML2.DOMDocument
     Dim oXMLNodeList As MSXML2.IXMLDOMNodeList
 
     ' Get path to settings file
     sPathXML = GetSettings(ExlFileWorkBook)
+    sPathXMLRel = GetSettings(ExlFileWorkBookRels)
 
     ' Initialize XML parser
     Set oXMLDoc = getXMLDOC(sPathXML)
     If oXMLDoc Is Nothing Then Exit Function
     Set oXMLNodeList = oXMLDoc.SelectNodes("/workbook/sheets/sheet")
-
+    
+    Set oXMLDocRel = getXMLDOC(sPathXMLRel)
+    
     ' Check that node is found and not empty
     If oXMLNodeList Is Nothing Then Exit Function
     Dim iCount      As Long
@@ -288,7 +289,7 @@ Public Function getArraySheetsName() As Variant
     If iCount = 0 Then Exit Function
 
     Dim i           As Long
-    ReDim arr(1 To iCount, 1 To 3) As String
+    ReDim arr(1 To iCount, 1 To 4) As String
 
     ' Iterate through only real sheet nodes
     For i = 0 To iCount - 1
@@ -296,6 +297,7 @@ Public Function getArraySheetsName() As Variant
             arr(i + 1, 1) = .getNamedItem("name").text
             arr(i + 1, 2) = .getNamedItem("sheetId").text
             arr(i + 1, 3) = .getNamedItem("r:id").text
+            arr(i + 1, 4) = oXMLDocRel.SelectSingleNode("//Relationship[@Id='" & arr(i + 1, 3) & "']").Attributes.getNamedItem("Target").text
         End With
     Next i
     getArraySheetsName = arr
@@ -304,11 +306,87 @@ Public Function getArraySheetsName() As Variant
     Set oXMLDoc = Nothing
 End Function
 
-Public Function delPasswordSheet(ByVal idSheet As Long) As Boolean
+Public Function delPasswordSheet(ByVal idSheet As String) As Boolean
+
     Dim sPathXML    As String
     ' Get path to sheet settings file
-    sPathXML = addPathToSheet(idSheet)
-    delPasswordSheet = delXMLNode(sPathXML, "/worksheet/sheetProtection")
+    sPathXML = GetSettings(FolderXl) & idSheet
+
+    Dim fNum        As Integer
+    Dim fileSize    As Long
+    Dim fileBytes() As Byte
+    Dim fileContent As String
+
+    Dim p1 As Long, p2 As Long
+    Dim newBytes()  As Byte
+    Dim i As Long, k As Long
+
+    ' Искомые фрагменты как обычные строки
+    Const TARGET_START As String = "<sheetProtection "
+    Const TARGET_END As String = "/>"
+
+    fNum = FreeFile()
+
+    ' 1. Читаем файл как БАЙТЫ (чтобы не испортить кодировку при чтении)
+    Open sPathXML For Binary Access Read As #fNum
+    fileSize = LOF(fNum)
+
+    If fileSize > 0 Then
+        ReDim fileBytes(0 To fileSize - 1)
+        Get #fNum, , fileBytes
+    End If
+    Close #fNum
+
+    ' 2. Преобразуем байты в строку ТОЛЬКО для поиска
+    ' StrConv с vbUnicode превратит массив байтов в строку, которую понимает VBA.
+    ' Это работает корректно для поиска ASCII тегов.
+    fileContent = StrConv(fileBytes, vbUnicode)
+
+    ' 3. Ищем теги обычными строковыми функциями
+    p1 = InStr(1, fileContent, TARGET_START, vbBinaryCompare)
+
+    If p1 > 0 Then
+        p2 = InStr(p1, fileContent, TARGET_END, vbBinaryCompare)
+
+        If p2 > 0 Then
+            ' 4. Собираем новый массив байтов без тега
+            ' Вычисляем позиции в байтах (индексация в массиве с 0)
+            Dim headEnd As Long
+            Dim tailStart As Long
+            Dim tagLen As Long
+
+            headEnd = p1 - 1             ' Индекс последнего байта ДО тега
+            tailStart = p2 + Len(TARGET_END) - 1    ' Индекс первого байта ПОСЛЕ тега
+            tagLen = tailStart - headEnd  ' Длина удаляемого куска
+
+            ReDim newBytes(0 To fileSize - tagLen - 1)
+
+            ' Копируем "Голову" (все, что до тега)
+            For i = 0 To headEnd - 1
+                newBytes(i) = fileBytes(i)
+            Next i
+
+            ' Копируем "Хвост" (все, что после тега)
+            k = headEnd    ' Текущая позиция записи в новом массиве
+            For i = tailStart To fileSize - 1
+                newBytes(k) = fileBytes(i)
+                k = k + 1
+            Next i
+
+            SetAttr sPathXML, vbNormal
+            Kill sPathXML
+            DoEvents
+
+            ' 5. Записываем результат обратно
+            fNum = FreeFile()
+            Open sPathXML For Binary Access Write As #fNum
+            Put #fNum, , newBytes
+            Close #fNum
+            DoEvents
+
+            delPasswordSheet = True
+        End If
+    End If
 End Function
 
 Public Function delPasswordWBook() As Boolean

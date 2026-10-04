@@ -49,8 +49,8 @@ Public Sub addSnipetsDirectory()
         Else
             Call MkDir(sItemPath)
         End If
-
-        Call saveTextToFile(CStr(arrBody(i, 3)), sItemPath & m_FILE_CODE, m_ENC_WIN1251)
+        arrBody(i, 3) = CollapseRepeats(CStr(arrBody(i, 3)), Chr(13))
+        Call saveTextToFile(arrBody(i, 3), sItemPath & m_FILE_CODE, m_ENC_WIN1251)
         Call saveTextToFile(CStr(arrBody(i, 4)), sItemPath & m_FILE_DESC, m_ENC_UTF8)
 
         If CStr(arrBody(i, 6)) <> vbNullString Then

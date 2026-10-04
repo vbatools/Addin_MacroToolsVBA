@@ -9,6 +9,13 @@ Option Private Module
     Public Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
 #End If
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Enum        : enumParametrVersion
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Description: Enumeration for selecting application version parameters.
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Enum enumParametrVersion
     enName = 1
     enAuthor
@@ -22,6 +29,16 @@ Public Enum enumParametrVersion
     [_Last] = enAll
 End Enum
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : RegexEscape - escaping special characters for regular expressions
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal sInput As String                         : Source string
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Function RegexEscape(ByVal sInput As String) As String
     Dim sSpecial As String, i As Long, sChar As String
     sSpecial = "\^$.|?*+()[]{}"
@@ -32,6 +49,17 @@ Public Function RegexEscape(ByVal sInput As String) As String
     RegexEscape = sInput
 End Function
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : Version - retrieving information about the application version and parameters
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal Parametr As enumParametrVersion          : Requested parameter
+'* Optional bOnlyValue As Boolean = False         : Return only the value (without the name)
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Function Version(ByVal Parametr As enumParametrVersion, Optional bOnlyValue As Boolean = False) As String
     Dim sRes        As String
     Dim arr         As Variant
@@ -62,6 +90,12 @@ End Function
 '* Copyright  : Apache License
 '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : getCommentVBATools - returns ASCII art signature for VBATools
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Function getCommentVBATools() As String
     Const STR_1     As String = "' __      ______       _______         ,_ "
     Const STR_2     As String = "' \ \    / /  _ \   /\|__   __|        | |"
@@ -72,6 +106,16 @@ Public Function getCommentVBATools() As String
     getCommentVBATools = STR_1 & vbNewLine & STR_2 & vbNewLine & STR_3 & vbNewLine & STR_4 & vbNewLine & STR_5 & vbNewLine & STR_6 & vbNewLine
 End Function
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Procedure  : URLLinks - opening a link in the default browser
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal url_str As String                        : URL address to open
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Sub URLLinks(ByVal url_str As String)
     If VBA.Len(url_str) = 0 Then Exit Sub
     On Error GoTo ErrorHandler
@@ -101,105 +145,294 @@ End Sub
 '* Optional Atributes As FileAttribute = vbNormal : - check type, file or folder
 '*
 '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-Public Function FileHave(ByVal Path As String, ByVal fileAttribute As VbFileAttribute) As Boolean
-    Dim FSO         As Object
+Public Function FileHave(ByVal filePath As String, Optional ByVal fileAttribute As VbFileAttribute = vbNormal) As Boolean
+    On Error GoTo ErorHandler
+    If filePath = vbNullString Then FileHave = False
 
-    ' Check for empty
-    If Path = vbNullString Then Exit Function
-    ' Create FileSystemObject
-    Set FSO = CreateObject("Scripting.FileSystemObject")
-    ' Depending on the IsFolder parameter, choose the check method
+    If Right$(filePath, 1) = Application.PathSeparator Then
+        filePath = Left$(filePath, Len(filePath) - 1)
+    End If
+
     Select Case fileAttribute
         Case VbFileAttribute.vbDirectory
-            ' Look for folder
-            FileHave = FSO.FolderExists(Path)
+            FileHave = (Dir$(filePath, vbDirectory) <> vbNullString)
         Case VbFileAttribute.vbNormal
-            ' Look for file
-            FileHave = FSO.FileExists(Path)
+            FileHave = (Dir$(filePath, vbNormal) <> vbNullString)
+        Case Else
+            Err.Raise vbObjectError + 1, "FileHave", "Unsupported file attribute: " & fileAttribute
     End Select
-    ' Free memory
-    Set FSO = Nothing
-End Function
 
-Public Function sGetBaseName(ByVal sPathFile As String) As String
-    'sPathFile - string, path.
-    'Returns the name (without extension) of the last component in the specified path.
-    Dim FSO         As Object
-    Set FSO = CreateObject("Scripting.FileSystemObject")
-    sGetBaseName = FSO.GetBaseName(sPathFile)
-    Set FSO = Nothing
-End Function
+    GoTo CleanExit
 
-Public Function sGetExtensionName(ByVal sPathFile As String) As String
-    'sPathFile - string, path.
-    'Returns the extension of the last component in the specified path.
-    Dim FSO         As Object
-    Set FSO = CreateObject("Scripting.FileSystemObject")
-    sGetExtensionName = FSO.GetExtensionName(sPathFile)
-    Set FSO = Nothing
+ErorHandler:
+    Err.Raise Err.Number, "FileHave", Err.Description
+
+CleanExit:
 End Function
 
 '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-'* Function   : sGetFileName - returns the name (with extension) of the last component in the specified path.
-'* Created    : 22-03-2023 14:46
+'* Function   : sGetBaseName - extracting the file name without extension
+'* Created    : 12-01-2026 13:46
 '* Author     : VBATools
 '* Copyright  : Apache License
-'* Argument(s):                 Description
+'* Argument(s):                                     Description
 '*
-'* ByVal sPathFile As String : - string, path to file
+'* ByVal filePath As String                       : Full path to the file
 '*
 '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-Public Function sGetFileName(ByVal sPathFile As String) As String
-    Dim FSO         As Object
-    Set FSO = CreateObject("Scripting.FileSystemObject")
-    sGetFileName = FSO.getFileName(sPathFile)
-    Set FSO = Nothing
+Public Function sGetBaseName(ByVal filePath As String) As String
+    On Error GoTo ErrorHandler
+    
+    If filePath = vbNullString Then Exit Function
+
+    Dim separator As String
+    separator = Application.PathSeparator
+    
+    Dim fileName As String
+    If InStrRev(filePath, separator) > 0 Then
+        fileName = Mid$(filePath, InStrRev(filePath, separator) + 1)
+    Else
+        fileName = filePath
+    End If
+    
+    Dim dotPosition As Long
+    dotPosition = InStrRev(fileName, ".")
+    
+    ' If dot is found and it is not the first character (hidden files in Linux, for example)
+    If dotPosition > 1 Then
+        sGetBaseName = Left$(fileName, dotPosition - 1)
+    Else
+        ' If there is no dot or it is at the beginning, return the name as is
+        sGetBaseName = fileName
+    End If
+    
+    Exit Function
+
+ErrorHandler:
+    ' Re-throw error to the calling code
+    Err.Raise Err.Number, "sGetBaseName", Err.Description
 End Function
 
-Public Function MoveFile(OldFile As String, NewPathFile As String) As Boolean
-    'Move file
-    Dim objFso As Object, objFile As Object
-    If Dir(OldFile, 16) = vbNullString Then Exit Function
-    'move the file
-    Set objFso = CreateObject("Scripting.FileSystemObject"): Set objFile = objFso.GetFile(OldFile)
-    objFile.Copy NewPathFile
-    Set objFile = Nothing: Set objFso = Nothing
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : sGetExtensionName - retrieving the file extension
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal filePath As String                       : Full path to the file
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+Public Function sGetExtensionName(ByVal filePath As String) As String
+    On Error GoTo ErrorHandler
+    
+    If filePath = vbNullString Then Exit Function
+    
+    Dim separator As String
+    separator = Application.PathSeparator
+    
+    Dim fileName As String
+    If InStrRev(filePath, separator) > 0 Then
+        fileName = Mid$(filePath, InStrRev(filePath, separator) + 1)
+    Else
+        fileName = filePath
+    End If
+    
+    Dim dotPosition As Long
+    dotPosition = InStrRev(fileName, ".")
+    
+    ' If dot is found and it is not the first character (e.g., file ".gitignore")
+    If dotPosition > 1 Then
+        ' Return text after the dot in lower case (standard for extensions)
+        sGetExtensionName = LCase$(Mid$(fileName, dotPosition + 1))
+    Else
+        ' If there is no dot or it is at the beginning, return an empty string
+        sGetExtensionName = vbNullString
+    End If
+    
+    Exit Function
+
+ErrorHandler:
+    ' Re-throw error to the calling code
+    Err.Raise Err.Number, "sGetExtensionName", Err.Description
+End Function
+
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : sGetFileName - retrieving the file name with extension
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal filePath As String                       : Full path to the file or folder
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+Public Function sGetFileName(ByVal filePath As String) As String
+    On Error GoTo ErrorHandler
+    
+    ' 1. Input validation
+    If filePath = vbNullString Then Exit Function
+
+    Dim separator As String
+    separator = Application.PathSeparator
+    
+    Dim separatorPosition As Long
+    separatorPosition = InStrRev(filePath, separator)
+    
+    ' 3. Extracting file name
+    If separatorPosition > 0 Then
+        ' Return everything after the last slash
+        sGetFileName = Mid$(filePath, separatorPosition + 1)
+    Else
+        ' If there is no separator, the file name itself was passed
+        sGetFileName = filePath
+    End If
+    
+    Exit Function
+
+ErrorHandler:
+    ' Re-throw error to the calling code
+    Err.Raise Err.Number, "sGetFileName", Err.Description
+End Function
+
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : sGetParentFolderName - retrieving the path to the parent folder
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal filePath As String                       : Full path to the file or folder
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+Public Function sGetParentFolderName(ByVal filePath As String) As String
+    On Error GoTo ErrorHandler
+    
+    ' 1. Input validation
+    If filePath = vbNullString Then Exit Function
+    
+    Dim separator As String
+    separator = Application.PathSeparator
+    
+    Dim separatorPosition As Long
+    separatorPosition = InStrRev(filePath, separator)
+    
+    ' 3. Extracting the path to the parent directory
+    If separatorPosition > 1 Then
+        ' Return path without trailing slash and file name
+        sGetParentFolderName = Left$(filePath, separatorPosition - 1)
+    Else
+        ' If there is no separator or it is the first (disk root), return an empty string
+        sGetParentFolderName = vbNullString
+    End If
+    
+    Exit Function
+
+ErrorHandler:
+    ' Re-throw error to the calling code
+    Err.Raise Err.Number, "sGetParentFolderName", Err.Description
+End Function
+
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : MoveFile - moving or renaming a file
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal sourcePath As String                     : Full path to the source file
+'* ByVal destinationPath As String                : Full destination path
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+Public Function MoveFile(ByVal sourcePath As String, ByVal destinationPath As String) As Boolean
+    On Error GoTo ErrorHandler
+    
+    ' 1. Input validation
+    If sourcePath = vbNullString Or destinationPath = vbNullString Then
+        Exit Function
+    End If
+    
+    ' 2. Checking if the source file exists (vbNormal - regular files)
+    If Dir$(sourcePath, vbNormal) = vbNullString Then
+        Exit Function
+    End If
+    
+    ' 3. Moving the file using built-in VBA statement
+    ' The Name statement moves the file at the file system level (faster than FSO)
+    Name sourcePath As destinationPath
+    
+    ' 4. Successful completion
     MoveFile = True
-End Function
+    Exit Function
 
-Public Function sGetParentFolderName(ByVal sPathFile As String) As String
-    'sPathFile - string, path.
-    'Returns the path to the last component in the specified path (its directory).
-    Dim FSO         As Object
-    Set FSO = CreateObject("Scripting.FileSystemObject")
-    sGetParentFolderName = FSO.GetParentFolderName(sPathFile)
-    Set FSO = Nothing
+ErrorHandler:
+    ' In case of an error (no rights, file is locked, folder does not exist) return False
+    MoveFile = False
 End Function
 
 '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-'* Function   : WorkbookIsOpen - Returns TRUE if the workbook named wname is open
-'* Created    : 08-10-2020 13:53
+'* Function   : WorkbookIsOpen - checking if an Excel workbook is open
+'* Created    : 12-01-2026 13:46
 '* Author     : VBATools
 '* Copyright  : Apache License
-'* Argument(s):             Description
+'* Argument(s):                                     Description
 '*
-'* ByRef WBName As String : Workbook name
+'* ByVal workbookName As String                   : Workbook name (e.g., "Report.xlsx")
 '*
 '* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-Public Function WorkbookIsOpen(ByRef WBName As String) As Boolean
-    Dim wb          As Workbook
-    On Error Resume Next
-    Set wb = Workbooks(WBName)
-    WorkbookIsOpen = Err.Number = 0
-    On Error GoTo 0
+Public Function WorkbookIsOpen(ByVal workbookName As String) As Boolean
+    On Error GoTo ErrorHandler
+    
+    ' 1. Input validation
+    If workbookName = vbNullString Then Exit Function
+
+    
+    ' 2. Iterating through open workbooks (safe check without On Error Resume Next)
+    Dim wb As Workbook
+    For Each wb In Application.Workbooks
+        If StrComp(wb.Name, workbookName, vbTextCompare) = 0 Then
+            WorkbookIsOpen = True
+            Exit Function
+        End If
+    Next wb
+    
+    ' If the loop finished and the workbook was not found
+    WorkbookIsOpen = False
+    Exit Function
+
+ErrorHandler:
+    ' Re-throw error to the calling code
+    Err.Raise Err.Number, "WorkbookIsOpen", Err.Description
 End Function
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : IsTableExists - checking if a table exists on a worksheet
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal sh As Worksheet                          : Worksheet object to check
+'* ByVal sTBName As String                        : Table name (ListObject)
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Function IsTableExists(ByVal sh As Worksheet, ByVal sTBName As String) As Boolean
     On Error Resume Next
     IsTableExists = Not sh.ListObjects(sTBName) Is Nothing
     On Error GoTo 0
 End Function
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Procedure  : base64ToFile - decoding a Base64 string to a file
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal sHashBase64 As String                    : Base64 formatted string
+'* ByVal sFilePath As String                      : Full path to save the file
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Sub base64ToFile(ByVal sHashBase64 As String, ByVal sFilePath As String)
     Dim byteArr()   As Byte
     Dim oBase       As Object
@@ -281,24 +514,47 @@ Public Function addTabelFromArray(ByRef arr As Variant, ByVal sDelimetr As Strin
     addTabelFromArray = VBA.Join(arrCol, vbNewLine)
 End Function
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : getPath - calling the folder picker dialog
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal sTitle As String                         : Dialog window title
+'* ByVal sPath As String                          : Initial path
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Function getPath(ByVal sTitle As String, ByVal sPath As String) As String
     On Error GoTo OptB_UsePatch_Change_Err
     If sPath = vbNullString Or Not (Dir(sPath, vbDirectory) <> vbNullString) Then sPath = ThisWorkbook.Path
     Dim sGetFolder  As String
-    With Application.FileDialog(msoFileDialogFolderPicker)        ' вывод диалогового окна
+    With Application.FileDialog(msoFileDialogFolderPicker)        ' show dialog window
         .ButtonName = "Выбрать": .Title = sTitle: .InitialFileName = sPath
         If .Show <> -1 Then
             getPath = sPath
-            Exit Function    ' если пользователь отказался от выбора папки
+            Exit Function    ' if the user canceled the folder selection
         End If
         sGetFolder = .SelectedItems(1)
     End With
     getPath = sGetFolder & Application.PathSeparator
     Exit Function
 OptB_UsePatch_Change_Err:
-    MsgBox Err.Description, vbExclamation + vbOKOnly, "Ошибка:"
+    MsgBox Err.Description, vbExclamation + vbOKOnly, "Error:"
 End Function
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : fileDialogFun - calling the file picker dialog
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal sPath As String                          : Initial path
+'* ByRef bMultiSelect As Boolean                  : Allow multi-select
+'* Optional sExpansion As String = "*.xlsm;..."   : File extension filter
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Function fileDialogFun(ByVal sPath As String, _
         ByRef bMultiSelect As Boolean, _
         Optional sExpansion As String = "*.xlsm;*.xlsb;*.xlsx") As String()
@@ -340,7 +596,16 @@ Public Function fileDialogFun(ByVal sPath As String, _
     'If (Not (Not (v))) = 0 Then Exit Sub
 End Function
 
-' Main function: Returns a two-dimensional array with file information
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : GetFilesTable - retrieving a table of files from a folder
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal folderPath As String                     : Path to the target folder
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Function GetFilesTable(ByVal folderPath As String) As Variant
     Dim FSO         As Object
     Dim folder      As Object
@@ -386,7 +651,16 @@ Function GetFilesTable(ByVal folderPath As String) As Variant
     Set FSO = Nothing
 End Function
 
-' Helper function: Recursive file count
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : CountFilesRecursive - recursive file count in a folder
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal currentFolder As Object                  : Folder object (FileSystemObject)
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Private Function CountFilesRecursive(ByVal currentFolder As Object) As Long
     Dim subFolder   As Object
     Dim lCount      As Long
@@ -400,7 +674,18 @@ Private Function CountFilesRecursive(ByVal currentFolder As Object) As Long
     CountFilesRecursive = lCount
 End Function
 
-' Helper procedure: Recursive array filling
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Procedure  : FillFilesTableRecursive - recursive filling of an array with file data
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal currentFolder As Object                  : Folder object (FileSystemObject)
+'* ByRef tableArray As Variant                    : Array to fill
+'* ByRef currentRow As Long                       : Current row for writing
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Private Sub FillFilesTableRecursive(ByVal currentFolder As Object, ByRef tableArray As Variant, ByRef currentRow As Long)
     Dim subFolder   As Object
     Dim file        As Object
@@ -421,6 +706,16 @@ Private Sub FillFilesTableRecursive(ByVal currentFolder As Object, ByRef tableAr
     Next subFolder
 End Sub
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : GetArrayFromDictionary - converting dictionary data to a 2D array
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByRef oDic As Dictionary                       : Dictionary object
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Function GetArrayFromDictionary(ByRef oDic As Dictionary) As Variant
     If oDic Is Nothing Then Exit Function
     If oDic.Count = 0 Then Exit Function
@@ -451,7 +746,19 @@ Public Function GetArrayFromDictionary(ByRef oDic As Dictionary) As Variant
     GetArrayFromDictionary = arrRes
 End Function
 
-' Procedure for outputting data to a sheet
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Procedure  : OutputResults - outputting an array of data to a workbook sheet
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByRef wb As Workbook                          : Target workbook
+'* ByRef sSheetName As String                    : Name of the sheet for output
+'* ByRef sNameVBAProj As String                  : Project name
+'* ByRef arrOutput As Variant                    : Array of data to output
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Sub OutputResults(ByRef wb As Workbook, ByRef sSheetName As String, ByRef sNameVBAProj As String, ByRef arrOutput As Variant)
     If IsEmpty(arrOutput) Then Exit Sub
     Dim wsTarget    As Worksheet
@@ -499,6 +806,17 @@ Public Sub OutputResults(ByRef wb As Workbook, ByRef sSheetName As String, ByRef
     End With
 End Sub
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Procedure  : WriteErrorLog - recording and displaying error logs
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal sNameFunc As String                      : Name of the function that caused the error
+'* ByVal bMsgBox As Boolean                       : Show MsgBox (True) or print to Debug
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Sub WriteErrorLog(ByVal sNameFunc As String, ByVal bMsgBox As Boolean)
 
     If bMsgBox Then
@@ -513,6 +831,18 @@ Public Sub WriteErrorLog(ByVal sNameFunc As String, ByVal bMsgBox As Boolean)
     Set clsLoger = Nothing
 End Sub
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : FilterArrayByText - filtering an array by text value
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByRef vSourceArray As Variant                  : Source data array
+'* ByVal iColSerch As Byte                        : Index of the column to search
+'* ByVal sSearch As String                        : Search string
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Function FilterArrayByText(ByRef vSourceArray As Variant, ByVal iColSerch As Byte, ByVal sSearch As String) As Variant
     Dim i           As Long
     Dim lCount      As Long
@@ -560,6 +890,18 @@ Public Function FilterArrayByText(ByRef vSourceArray As Variant, ByVal iColSerch
     FilterArrayByText = arrResult
 End Function
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : GetTargetWorkbook - selecting a target workbook via a user form
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByRef wb As Workbook                          : Selected workbook object
+'* ByVal sCaptionForm As String                  : Form title
+'* ByVal sCaptionBtnOk As String                 : Confirmation button text
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Function GetTargetWorkbook(ByRef wb As Workbook, ByVal sCaptionForm As String, ByVal sCaptionBtnOk As String) As Boolean
     With frmListWBOpen
         .Caption = sCaptionForm
@@ -575,6 +917,18 @@ Public Function GetTargetWorkbook(ByRef wb As Workbook, ByVal sCaptionForm As St
     GetTargetWorkbook = True
 End Function
 
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : saveTextToFile - saving text to a file with a specified encoding
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal txt As String                           : Text to save
+'* ByVal fileName As String                      : Full path to the file
+'* Optional ByVal encoding As String = "win..."  : Encoding (utf-8, utf-16, ansi)
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 Public Function saveTextToFile(ByVal txt As String, ByVal fileName As String, Optional ByVal encoding As String = "windows-1251") As Boolean
 
     On Error Resume Next: Err.Clear
@@ -617,3 +971,31 @@ Public Function saveTextToFile(ByVal txt As String, ByVal fileName As String, Op
     End Select
     saveTextToFile = Err = 0: DoEvents
 End Function
+
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+'* Function   : CollapseRepeats - removing repeating characters in a string
+'* Created    : 12-01-2026 13:46
+'* Author     : VBATools
+'* Copyright  : Apache License
+'* Argument(s):                                     Description
+'*
+'* ByVal strInput As String                       : Source string
+'* ByVal strChar As String                        : Character to collapse
+'*
+'* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+Public Function CollapseRepeats(strInput As String, strChar As String) As String
+    If Len(strInput) = 0 Then Exit Function
+    
+    Dim i As Long
+    Dim sDoubleChar As String
+    sDoubleChar = strChar & strChar
+    
+    i = VBA.InStr(1, strInput, sDoubleChar)
+    Do While i > 0
+        strInput = VBA.Replace(strInput, sDoubleChar, strChar)
+        i = VBA.InStr(1, strInput, sDoubleChar)
+    Loop
+
+    CollapseRepeats = strInput
+End Function
+

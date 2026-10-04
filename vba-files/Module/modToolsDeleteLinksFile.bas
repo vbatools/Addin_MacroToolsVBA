@@ -388,7 +388,7 @@ Private Sub CheckNamedRangeLinks(wkbk As Workbook, ByRef numLinks As Long)
     Dim delCt       As Long
     Dim nameCnt     As Integer
     Dim iCount      As Integer
-    Dim FilePath    As String
+    Dim filePath    As String
 
     Set FSO = CreateObject("Scripting.FileSystemObject")
     delCt = 0
@@ -409,8 +409,8 @@ Private Sub CheckNamedRangeLinks(wkbk As Workbook, ByRef numLinks As Long)
                         pathPos = VBA.InStr(1, wkbk.Names(nameCnt).RefersTo, "\")
 
                         If startPos > 0 And endPos > 0 And pathPos > 0 Then
-                            FilePath = VBA.Replace(VBA.Mid(wkbk.Names(nameCnt).RefersTo, startPos + 2, endPos - startPos - 2), "[", "")
-                            If Not FSO.FileExists(FilePath) Then
+                            filePath = VBA.Replace(VBA.Mid(wkbk.Names(nameCnt).RefersTo, startPos + 2, endPos - startPos - 2), "[", "")
+                            If Not FSO.FileExists(filePath) Then
                                 wkbk.Names(nameCnt).Delete
                                 delCt = delCt + 1
                             Else

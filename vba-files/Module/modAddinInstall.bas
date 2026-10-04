@@ -162,7 +162,7 @@ Private Sub UpdateTablesFromTBArray(ByRef targetWorkbook As Workbook, _
             Set tbl = targetSheet.ListObjects(tableName)
             If Not tbl.DataBodyRange Is Nothing Then tbl.DataBodyRange.Delete
             tbl.Range(2, 1).Resize(UBound(data, 1), UBound(data, 2)).Value2 = data
-            Debug.Print ">> Table: " & tableName & "— updated"
+            Debug.Print ">> Table: " & tableName & " - updated"
         Else
             Debug.Print ">> Warning: Table '" & tableName & "' not found on sheet '" & targetSheet.Name & "'."
         End If

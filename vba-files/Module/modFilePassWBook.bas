@@ -29,7 +29,7 @@ Public Sub delPasswordWBook()
                 If Not IsEmpty(arr) Then
                     Dim i As Long
                     For i = 1 To UBound(arr, 1)
-                        Call .delPasswordSheet(arr(i, 2))
+                        Call .delPasswordSheet(arr(i, 4))
                     Next i
                 End If
                 Call .ZipFilesInFolder
